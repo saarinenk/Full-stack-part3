@@ -33,12 +33,12 @@ let persons = [
   }
 ];
 
-app.get("/", (req, res) => {
-  res.send("<h1>Hello World!</h1>");
+app.get("/", (request, response) => {
+  response.send("<h1>Hello World!</h1>");
 });
 
-app.get("/api/persons", (req, res) => {
-  res.json(persons);
+app.get("/api/persons", (request, response) => {
+  response.json(persons);
 });
 
 app.get("/api/persons/:id", (request, response) => {
@@ -51,13 +51,49 @@ app.get("/api/persons/:id", (request, response) => {
   }
 });
 
+app.get("/info", (request, response) => {
+  response.send(
+    `<p>Phonebook has info for ${persons.length} people</p>
+    \n
+    <p>${new Date()}</p>`
+  );
+});
+
+const generateID = () => {
+  const newID = Math.floor(Math.random() * 200);
+  if (persons.filter(p => p.id === newID).length > 0) {
+    return generateID();
+  } else {
+    return newID;
+  }
+};
+
 app.post("/api/persons", (request, response) => {
-  const person = request.body;
+  const body = request.body;
 
-  const maxId = persons.length > 0 ? Math.max(...notes.map(p => p.id)) : 0;
-  person.id = maxId + 1;
+  if (!body.name) {
+    return response.status(400).json({
+      error: "Name missing"
+    });
+  } else if (!body.number) {
+    return response.status(400).json({
+      error: "Number missing"
+    });
+  }
 
-  persons = persons.concat(note);
+  if (persons.filter(p => p.name === body.name).length > 0) {
+    return response.status(400).json({
+      error: "Name is already taken, it must be unique"
+    });
+  }
+
+  const person = {
+    name: body.name,
+    number: body.number,
+    id: generateID()
+  };
+
+  persons = persons.concat(person);
 
   response.json(person);
 });
