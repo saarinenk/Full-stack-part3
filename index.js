@@ -4,6 +4,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
+const Person = require("./models/person");
 
 app.use(cors());
 
@@ -18,7 +19,7 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :json")
 );
 
-let persons = [
+/**let persons = [
   {
     name: "Arto Hellas",
     number: "040123456",
@@ -44,24 +45,22 @@ let persons = [
     name: "Katri Saari",
     number: "071-123-789"
   }
-];
+]; */
 
 app.get("/", (request, response) => {
   response.send("<h1>Hello World!</h1>");
 });
 
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  Person.find({}).then(persons => {
+    response.json(persons.map(person => person.toJSON()));
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find(person => person.id === id);
-  if (person) {
+  Person.find(id === request.params.id).then(person => {
     response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  });
 });
 
 app.get("/info", (request, response) => {
@@ -72,14 +71,14 @@ app.get("/info", (request, response) => {
   );
 });
 
-const generateID = () => {
+/**const generateID = () => {
   const newID = Math.floor(Math.random() * 200);
   if (persons.filter(p => p.id === newID).length > 0) {
     return generateID();
   } else {
     return newID;
   }
-};
+};*/
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
@@ -94,21 +93,20 @@ app.post("/api/persons", (request, response) => {
     });
   }
 
-  if (persons.filter(p => p.name === body.name).length > 0) {
+  /**if (persons.filter(p => p.name === body.name).length > 0) {
     return response.status(400).json({
       error: "Name is already taken, it must be unique"
     });
-  }
+  }*/
 
-  const person = {
+  const person = new Person({
     name: body.name,
-    number: body.number,
-    id: generateID()
-  };
+    number: body.number
+  });
 
-  persons = persons.concat(person);
-
-  response.json(person);
+  person.save().then(savedPerson => {
+    response.json(savedPerson.toJSON());
+  });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
