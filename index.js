@@ -58,7 +58,7 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  Person.find(id === request.params.id).then(person => {
+  Person.findById(request.params.id).then(person => {
     response.json(person);
   });
 });
