@@ -19,34 +19,6 @@ app.use(
   morgan(":method :url :status :res[content-length] - :response-time ms :json")
 );
 
-/**let persons = [
-  {
-    name: "Arto Hellas",
-    number: "040123456",
-    id: 1
-  },
-  {
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-    id: 2
-  },
-  {
-    name: "Dan Abramov",
-    number: "12-43-234345",
-    id: 3
-  },
-  {
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-    id: 4
-  },
-  {
-    id: 5,
-    name: "Katri Saari",
-    number: "071-123-789"
-  }
-]; */
-
 app.get("/", (request, response) => {
   response.send("<h1>Hello World!</h1>");
 });
@@ -70,21 +42,14 @@ app.get("/api/persons/:id", (request, response, next) => {
 });
 
 app.get("/info", (request, response) => {
-  response.send(
-    `<p>Phonebook has info for ${persons.length} people</p>
-    \n
-    <p>${new Date()}</p>`
-  );
+  Person.countDocuments({}, function(err, count) {
+    response.send(
+      `<p>Phonebook has info for ${count} people</p>
+      \n
+      <p>${new Date()}</p>`
+    );
+  });
 });
-
-/**const generateID = () => {
-  const newID = Math.floor(Math.random() * 200);
-  if (persons.filter(p => p.id === newID).length > 0) {
-    return generateID();
-  } else {
-    return newID;
-  }
-};*/
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
@@ -99,12 +64,6 @@ app.post("/api/persons", (request, response) => {
     });
   }
 
-  /**if (persons.filter(p => p.name === body.name).length > 0) {
-    return response.status(400).json({
-      error: "Name is already taken, it must be unique"
-    });
-  }*/
-
   const person = new Person({
     name: body.name,
     number: body.number
@@ -113,6 +72,21 @@ app.post("/api/persons", (request, response) => {
   person.save().then(savedPerson => {
     response.json(savedPerson.toJSON());
   });
+});
+
+app.put("/api/persons/:id", (request, response, next) => {
+  const body = request.body;
+
+  const person = {
+    namme: body.name,
+    number: body.number
+  };
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson.toJSON());
+    })
+    .catch(error => next(error));
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {

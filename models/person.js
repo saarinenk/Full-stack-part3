@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+mongoose.set("useFindAndModify", false);
+
 const url = process.env.MONGO_URL;
 
 console.log("connecting to", url);
